@@ -1,7 +1,11 @@
 import os
 from string import Template
+import configparser
 
-data_root_path: str = 'C:\\Users\\deral\\University\\ICNS\\Project\\Data'
+config_parser = configparser.ConfigParser()
+config_parser.read('../config.ini')
+
+data_root_path: str = config_parser['PATHS']['data_root']
 
 institutes = ['KKI',
               'NeuroIMAGE',
