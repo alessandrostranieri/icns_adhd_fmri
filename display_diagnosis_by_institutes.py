@@ -4,15 +4,16 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from icns import common
+from icns.common import DataScope
 
 institute_diagnosis = dict()
 for institute in common.institutes:
-    phenotypic_data_path: str = common.create_phenotypic_path(institute)
-    logging.debug(f'Reading phenotypic file {phenotypic_data_path}')
+    phenotype_file_path: str = common.create_phenotype_path(institute, DataScope.TRAIN)
+    logging.debug(f'Reading phenotype file {phenotype_file_path}')
 
-    phenotypic_df: pd.DataFrame = pd.read_csv(phenotypic_data_path)
+    phenotype_df: pd.DataFrame = pd.read_csv(phenotype_file_path)
 
-    diagnosis_counts: pd.Series = phenotypic_df.DX.value_counts()
+    diagnosis_counts: pd.Series = phenotype_df.DX.value_counts()
     diagnosis_counts.sort_index(inplace=True)
     institute_diagnosis[institute] = diagnosis_counts
 
