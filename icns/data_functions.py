@@ -15,7 +15,7 @@ def time_series_mean(time_series_path: str) -> pd.Series:
     return time_series_filtered.mean()
 
 
-def create_training_data(institutes: List[str], atlas: str, phenotype_features: List[str]) -> pd.DataFrame:
+def create_training_data(institutes: List[str], atlas: str, phenotype_features: List[str], smoothed: bool=False) -> pd.DataFrame:
     for institute in institutes:
         # Read the phenotype file into a data frame
         phenotype_file_path: str = create_phenotype_path(institute, DataScope.TRAIN)
@@ -34,7 +34,7 @@ def create_training_data(institutes: List[str], atlas: str, phenotype_features: 
         time_series_patient_id_list: List[str] = list()
         for patient_id in patients_s:
             # Get patient time series
-            time_series_path = create_patient_time_series_path(institute, patient_id, atlas, DataScope.TRAIN)
+            time_series_path = create_patient_time_series_path(institute, patient_id, atlas, DataScope.TRAIN, smoothed)
             if path.exists(time_series_path):
                 patient_time_series_mean: pd.Series = time_series_mean(time_series_path)
                 time_series_mean_list.append(patient_time_series_mean)

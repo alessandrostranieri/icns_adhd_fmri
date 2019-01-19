@@ -40,8 +40,8 @@ t1_file_format = Template('wssd${subject}_session_${session}_anat.nii.gz')
 gm_file_format = Template('wssd${subject}_session_${session}_anat_gm.nii.gz')
 rsfrmi_file_format = Template('snwmrda${subject}_session_${session}_rest_${scan}.nii.gz')
 filtered_rsfrmi_file_format = Template('sfnwmrda${subject}_session_${session}_rest_${scan}.nii.gz')
-tc_file_format = Template('snwmrda${subject}_session_1_rest_1_${atlas}_TCs.1D')
-filtered_tc_file_format = Template('sfnwmrda${subject}_session_1_rest_1_${atlas}_TCs.1D')
+time_series_file_format = Template('snwmrda${subject}_session_1_rest_1_${atlas}_TCs.1D')
+smoothed_time_series_file_format = Template('sfnwmrda${subject}_session_1_rest_1_${atlas}_TCs.1D')
 
 # Time series
 train_time_series_path: str = os.path.join(train_data_path, 'TC')
@@ -69,6 +69,10 @@ def create_phenotype_path(institute: str, scope: DataScope):
     return os.path.join(create_time_series_path(institute, scope), phenotype_file_name)
 
 
-def create_patient_time_series_path(institute: str, patient_id: str, atlas: str, scope: DataScope) -> str:
+def create_patient_time_series_path(institute: str, patient_id: str, atlas: str, scope: DataScope, smoothed: bool=False) -> str:
     time_series_path = create_time_series_path(institute, scope)
-    return os.path.join(time_series_path, patient_id, tc_file_format.substitute(subject=patient_id, atlas=atlas))
+    if smoothed:
+        time_series_file_name = smoothed_time_series_file_format.substitute(subject=patient_id, atlas=atlas)
+    else:
+        time_series_file_name = time_series_file_format.substitute(subject=patient_id, atlas=atlas)
+    return os.path.join(time_series_path, patient_id, time_series_file_name)
