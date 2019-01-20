@@ -28,7 +28,12 @@ institutes = ['KKI',
 
 
 class PhenotypeLabels:
-    SCAN_DIR_ID = 'ScanDir ID'
+    SCAN_DIR_ID: str = 'ScanDir ID'
+    SITE: str = 'Site'
+    ADHD_MEASURE: str = 'ADHD Measure'
+    IQ_MEASURE: str = 'IQ Measure'
+    AGE: str = 'Age'
+    GENDER: str = 'Gender'
     DX: str = 'DX'
     VERBAL_IQ: str = 'Verbal IQ'
     PERFORMANCE_IQ: str = 'Performance IQ'
