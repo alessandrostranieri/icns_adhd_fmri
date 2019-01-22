@@ -17,10 +17,12 @@ class Features(Enum):
     TIME_SERIES = 0
     TIME_SERIES_AND_PHENOTYPIC = 1
 
+
 @unique
 class Target(Enum):
     TD_ADHD = 0
     TD_SUB_ADHD = 1
+
 
 @unique
 class DataScope(Enum):
@@ -60,7 +62,7 @@ class Institute(Enum):
 
     @staticmethod
     def get_directories() -> List[str]:
-        return ['Peking_1', 'Peking_2', 'Peking_3', 'KKI', 'NeuroIMAGE', 'NYU', 'OHSU', 'WashU']
+        return ['Peking', 'KKI', 'NeuroIMAGE', 'NYU', 'OHSU', 'WashU']
 
 
 class Phenotypic:

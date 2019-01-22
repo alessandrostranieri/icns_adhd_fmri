@@ -31,7 +31,8 @@ def create_training_data(institutes: List[Institute], atlas: Atlas, phenotype_fe
         # Filter the data considering only selected features and target labels
         all_labels: List[str] = [Phenotypic.SCAN_DIR_ID] + phenotype_features + [Phenotypic.DX]
         selected_phenotype_df: pd.DataFrame = phenotype_df[all_labels].set_index(Phenotypic.SCAN_DIR_ID)
-        selected_phenotype_df[Phenotypic.GENDER].fillna(method='pad', inplace=True)
+        if phenotype_features:
+            selected_phenotype_df.fillna(method='pad', inplace=True)
 
         # Process and collect time series files
         for patient_id, phenotypic in selected_phenotype_df.iterrows():

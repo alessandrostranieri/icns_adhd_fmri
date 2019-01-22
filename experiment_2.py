@@ -12,12 +12,24 @@ from sklearn.preprocessing import StandardScaler
 from icns.common import Phenotypic, Institute, Atlas, Features, Target
 from icns.data_functions import create_training_data
 
+
+def create_classifier(classifier_name):
+    if classifier_name is 'SVC':
+        return LinearSVC(random_state=42)
+    elif classifier_name is 'RandomForest':
+        return RandomForestClassifier(random_state=42, n_estimators=200)
+    elif classifier_name is 'SGD':
+        SGDClassifier(random_state=42)
+
+
 # Experiment parameters
 institute = Institute.NYU
 atlas = Atlas.AAL
 features_composition = Features.TIME_SERIES
 target_domain = Target.TD_ADHD
-connectivity_kind = 'tangent'
+connectivity_kind = 'correlation'
+pca_components_number = 4
+classifier_type = 'SVC'
 
 train_data: dict = create_training_data([institute], atlas,
                                         [Phenotypic.SITE,
@@ -26,13 +38,13 @@ train_data: dict = create_training_data([institute], atlas,
                                          Phenotypic.VERBAL_IQ,
                                          Phenotypic.PERFORMANCE_IQ,
                                          Phenotypic.FULL4_IQ])
-
 # Prepare data for connectivity matrix
-institute_data = train_data[institute]
 
+institute_data = train_data[institute]
 time_series_list = list()
 phenotypic_list = list()
 adhd_labels = list()
+
 for patient_id in institute_data.keys():
     patient_data = institute_data[patient_id]
     # Time-series
@@ -46,31 +58,24 @@ for patient_id in institute_data.keys():
     adhd_labels.append(phenotypic[Phenotypic.DX])
     # phenotypic
     phenotypic_list.append(phenotypic.values)
-
 correlation_measure = ConnectivityMeasure(kind=connectivity_kind, vectorize=True)
-correlation_matrices = correlation_measure.fit_transform(time_series_list)
 
+correlation_matrices = correlation_measure.fit_transform(time_series_list)
 # Possibly combine features
+
 patient_features = None
 if features_composition is Features.TIME_SERIES:
     patient_features = correlation_matrices
 elif features_composition is Features.TIME_SERIES_AND_PHENOTYPIC:
     patient_features = np.concatenate((correlation_matrices, phenotypic_list), axis=1)
-
-# Scale features
-scaled_patient_features = StandardScaler().fit_transform(patient_features)
-
 # Compose data with phenotypic data
+
 X_train, X_test, y_train, y_test = train_test_split(patient_features,
                                                     adhd_labels,
                                                     test_size=0.33,
                                                     random_state=42)
 
-svc = LinearSVC(random_state=42)
-rf = RandomForestClassifier(random_state=42, n_estimators=200)
-sgd = SGDClassifier(random_state=42)
-
-classifier = svc
+classifier = create_classifier(classifier_type)
 classifier.fit(X_train, y_train)
 
 y_train_predicted = classifier.predict(X_train)
@@ -87,7 +92,7 @@ print(f'Precision {precision}')
 print(f'Recall {recall}')
 
 # Perform PCA
-pca = PCA(n_components=4, random_state=42)
+pca = PCA(n_components=pca_components_number, random_state=42)
 transformed_data = pca.fit_transform(patient_features)
 
 print(f'Transformed data has type {type(transformed_data)} and shape {transformed_data.shape}')
@@ -100,8 +105,7 @@ X_train, X_test, y_train, y_test = train_test_split(transformed_data,
                                                     test_size=0.33,
                                                     random_state=42)
 
-svc = LinearSVC(random_state=42)
-classifier = svc
+classifier = create_classifier(classifier_type)
 classifier.fit(X_train, y_train)
 
 y_train_predicted = classifier.predict(X_train)
@@ -116,4 +120,3 @@ print(f'Train accuracy {train_accuracy}')
 print(f'Test accuracy {test_accuracy}')
 print(f'Precision {precision}')
 print(f'Recall {recall}')
-
