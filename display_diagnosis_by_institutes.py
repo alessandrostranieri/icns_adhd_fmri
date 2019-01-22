@@ -7,7 +7,7 @@ from icns import common
 from icns.common import DataScope
 
 institute_diagnosis = dict()
-for institute in common.institutes:
+for institute in common.Institute.get_directories():
     phenotype_file_path: str = common.create_phenotype_path(institute, DataScope.TRAIN)
     logging.debug(f'Reading phenotype file {phenotype_file_path}')
 
@@ -16,7 +16,6 @@ for institute in common.institutes:
     diagnosis_counts: pd.Series = phenotype_df.DX.value_counts()
     diagnosis_counts.sort_index(inplace=True)
     institute_diagnosis[institute] = diagnosis_counts
-
 
 fig, ax = plt.subplots(figsize=(12, 8))
 fig: plt.Figure = fig
@@ -31,6 +30,7 @@ diagnosis_labels = {0: 'Typically Developing Children',
                     2: 'ADHD-Hyperactive/Impulsive',
                     3: 'ADHD-Inattentive'}
 bar_positions = list()
+legend_handles = [None] * 4
 for pos, institute in enumerate(institute_diagnosis.keys()):
     single_institute_diagnosis = institute_diagnosis[institute]
     bar_position = int(pos * 2 * width)
@@ -38,19 +38,19 @@ for pos, institute in enumerate(institute_diagnosis.keys()):
     # TD
     bottom = 0
     for (dx_index, dx_bin) in single_institute_diagnosis.iteritems():
-        ax.bar(bar_position, dx_bin, width=width, bottom=bottom,
-               color=diagnosis_colors[dx_index],
-               label=diagnosis_labels[dx_index])
+        legend_handles[dx_index] = ax.bar(bar_position, dx_bin, width=width, bottom=bottom,
+                                          color=diagnosis_colors[dx_index],
+                                          label=diagnosis_labels[dx_index])
         bottom += dx_bin
 
 ax.set_ylabel('Diagnosis sample size')
 ax.set_xlabel('Institutes')
 ax.set_title('Diagnosis size by institute')
 ax.set_xticks(bar_positions)
-ax.set_xticklabels(common.institutes, rotation=45)
+ax.set_xticklabels(common.Institute.get_directories(), rotation=45)
 
-plt.legend(('Typically Developing Children',
-            'ADHD-Combined',
-            'ADHD-Hyperactive/Impulsive',
-            'ADHD-Inattentive'))
+plt.legend(legend_handles, ('Typically Developing Children',
+                            'ADHD-Combined',
+                            'ADHD-Hyperactive/Impulsive',
+                            'ADHD-Inattentive'))
 plt.show()
