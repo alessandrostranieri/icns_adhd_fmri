@@ -43,9 +43,9 @@ for pos, institute in enumerate(institute_diagnosis.keys()):
                                           label=diagnosis_labels[dx_index])
         bottom += dx_bin
 
+ax.set_title('Diagnosis composition by institute')
 ax.set_ylabel('Diagnosis sample size')
 ax.set_xlabel('Institutes')
-ax.set_title('Diagnosis size by institute')
 ax.set_xticks(bar_positions)
 ax.set_xticklabels(common.Institute.get_directories(), rotation=45)
 

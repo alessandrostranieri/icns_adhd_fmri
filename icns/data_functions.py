@@ -3,7 +3,7 @@ from typing import List
 
 import pandas as pd
 
-from icns.common import PhenotypeLabels, create_phenotype_path, DataScope, \
+from icns.common import Phenotypic, create_phenotype_path, DataScope, \
     create_patient_time_series_path, all_phenotypic_results_path, Institute, Atlas
 
 
@@ -26,12 +26,12 @@ def create_training_data(institutes: List[Institute], atlas: Atlas, phenotype_fe
         # Read the phenotype file into a data frame
         phenotype_file_path: str = create_phenotype_path(str(institute), DataScope.TRAIN)
         phenotype_df: pd.DataFrame = pd.read_csv(phenotype_file_path)
-        phenotype_df[PhenotypeLabels.SCAN_DIR_ID] = phenotype_df[PhenotypeLabels.SCAN_DIR_ID].apply(
+        phenotype_df[Phenotypic.SCAN_DIR_ID] = phenotype_df[Phenotypic.SCAN_DIR_ID].apply(
             lambda x: f'{x:07d}')
         # Filter the data considering only selected features and target labels
-        all_labels: List[str] = [PhenotypeLabels.SCAN_DIR_ID] + phenotype_features + [PhenotypeLabels.DX]
-        selected_phenotype_df: pd.DataFrame = phenotype_df[all_labels].set_index(PhenotypeLabels.SCAN_DIR_ID)
-        selected_phenotype_df[PhenotypeLabels.GENDER].fillna(method='pad', inplace=True)
+        all_labels: List[str] = [Phenotypic.SCAN_DIR_ID] + phenotype_features + [Phenotypic.DX]
+        selected_phenotype_df: pd.DataFrame = phenotype_df[all_labels].set_index(Phenotypic.SCAN_DIR_ID)
+        selected_phenotype_df[Phenotypic.GENDER].fillna(method='pad', inplace=True)
 
         # Process and collect time series files
         for patient_id, phenotypic in selected_phenotype_df.iterrows():
@@ -67,11 +67,11 @@ def create_adhd_withheld_data(institutes: List[Institute], atlas: Atlas, phenoty
 
         # Select the rows of the institute
         institute_phenotype_df: pd.DataFrame = phenotype_df.loc[
-            phenotype_df[PhenotypeLabels.SITE] == institute.get_code()]
+            phenotype_df[Phenotypic.SITE] == institute.get_code()]
         # Filter the data considering only selected features and target labels
-        all_labels: List[str] = ['ID'] + phenotype_features + [PhenotypeLabels.DX]
+        all_labels: List[str] = ['ID'] + phenotype_features + [Phenotypic.DX]
         selected_phenotype_df: pd.DataFrame = institute_phenotype_df[all_labels].set_index('ID')
-        selected_phenotype_df[PhenotypeLabels.GENDER].fillna(method='pad', inplace=True)
+        selected_phenotype_df[Phenotypic.GENDER].fillna(method='pad', inplace=True)
 
         # Process and collect time series files
         for patient_id, phenotypic in selected_phenotype_df.iterrows():

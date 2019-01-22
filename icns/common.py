@@ -13,6 +13,16 @@ test_data_path: str = config_parser['PATHS']['test_data']
 
 
 @unique
+class Features(Enum):
+    TIME_SERIES = 0
+    TIME_SERIES_AND_PHENOTYPIC = 1
+
+@unique
+class Target(Enum):
+    TD_ADHD = 0
+    TD_SUB_ADHD = 1
+
+@unique
 class DataScope(Enum):
     TRAIN = 0
     TEST = 1
@@ -53,7 +63,7 @@ class Institute(Enum):
         return ['Peking_1', 'Peking_2', 'Peking_3', 'KKI', 'NeuroIMAGE', 'NYU', 'OHSU', 'WashU']
 
 
-class PhenotypeLabels:
+class Phenotypic:
     SCAN_DIR_ID: str = 'ScanDir ID'
     SITE: str = 'Site'
     ADHD_MEASURE: str = 'ADHD Measure'
