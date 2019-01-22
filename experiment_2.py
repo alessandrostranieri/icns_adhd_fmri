@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from nilearn.connectome import ConnectivityMeasure
+from sklearn.decomposition import PCA
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import SGDClassifier
 from sklearn.metrics import accuracy_score, recall_score, precision_score
@@ -12,10 +13,11 @@ from icns.common import Phenotypic, Institute, Atlas, Features, Target
 from icns.data_functions import create_training_data
 
 # Experiment parameters
-institute = Institute.OHSU
+institute = Institute.NYU
 atlas = Atlas.AAL
 features_composition = Features.TIME_SERIES
 target_domain = Target.TD_ADHD
+connectivity_kind = 'tangent'
 
 train_data: dict = create_training_data([institute], atlas,
                                         [Phenotypic.SITE,
@@ -45,7 +47,7 @@ for patient_id in institute_data.keys():
     # phenotypic
     phenotypic_list.append(phenotypic.values)
 
-correlation_measure = ConnectivityMeasure(kind='correlation', vectorize=True)
+correlation_measure = ConnectivityMeasure(kind=connectivity_kind, vectorize=True)
 correlation_matrices = correlation_measure.fit_transform(time_series_list)
 
 # Possibly combine features
@@ -59,7 +61,7 @@ elif features_composition is Features.TIME_SERIES_AND_PHENOTYPIC:
 scaled_patient_features = StandardScaler().fit_transform(patient_features)
 
 # Compose data with phenotypic data
-X_train, X_test, y_train, y_test = train_test_split(scaled_patient_features,
+X_train, X_test, y_train, y_test = train_test_split(patient_features,
                                                     adhd_labels,
                                                     test_size=0.33,
                                                     random_state=42)
@@ -68,7 +70,7 @@ svc = LinearSVC(random_state=42)
 rf = RandomForestClassifier(random_state=42, n_estimators=200)
 sgd = SGDClassifier(random_state=42)
 
-classifier = rf
+classifier = svc
 classifier.fit(X_train, y_train)
 
 y_train_predicted = classifier.predict(X_train)
@@ -83,3 +85,35 @@ print(f'Train accuracy {train_accuracy}')
 print(f'Test accuracy {test_accuracy}')
 print(f'Precision {precision}')
 print(f'Recall {recall}')
+
+# Perform PCA
+pca = PCA(n_components=4, random_state=42)
+transformed_data = pca.fit_transform(patient_features)
+
+print(f'Transformed data has type {type(transformed_data)} and shape {transformed_data.shape}')
+
+print(f'Components: {pca.components_.shape}')
+print(f'Explained variance: {pca.explained_variance_ratio_}')
+
+X_train, X_test, y_train, y_test = train_test_split(transformed_data,
+                                                    adhd_labels,
+                                                    test_size=0.33,
+                                                    random_state=42)
+
+svc = LinearSVC(random_state=42)
+classifier = svc
+classifier.fit(X_train, y_train)
+
+y_train_predicted = classifier.predict(X_train)
+y_test_predicted = classifier.predict(X_test)
+
+train_accuracy = accuracy_score(y_train, y_train_predicted)
+test_accuracy = accuracy_score(y_test, y_test_predicted)
+precision = precision_score(y_test, y_test_predicted)
+recall = recall_score(y_test, y_test_predicted)
+
+print(f'Train accuracy {train_accuracy}')
+print(f'Test accuracy {test_accuracy}')
+print(f'Precision {precision}')
+print(f'Recall {recall}')
+
