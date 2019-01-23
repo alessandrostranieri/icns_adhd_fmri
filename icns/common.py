@@ -104,16 +104,18 @@ all_phenotypic_results_path: str = os.path.join(test_data_path, all_phenotypic_r
 # Template files
 
 class Atlas(Enum):
+
     CC200 = 'cc200'
     AAL = 'aal'
-
-    atlas_file_map = {CC200: 'ADHD200_parcellate_200.nii.gz', AAL: 'aal_mask_pad.nii.gz'}
 
     def __str__(self):
         return f'{self.value}'
 
     def file_name(self) -> str:
-        return self.atlas_file_map[self.value]
+        return atlas_file_map[self]
+
+
+atlas_file_map = {Atlas.CC200: 'ADHD200_parcellate_200.nii.gz', Atlas.AAL: 'aal_mask_pad.nii.gz'}
 
 
 def create_time_series_path(institute: str, scope: DataScope) -> str:
@@ -136,3 +138,7 @@ def create_patient_time_series_path(institute: str, patient_id: str, atlas: Atla
     else:
         time_series_file_name = time_series_file_format.substitute(subject=patient_id, atlas=str(atlas))
     return os.path.join(time_series_path, patient_id, time_series_file_name)
+
+
+def create_template_path(atlas: Atlas) -> str:
+    return os.path.join(time_series_templates_path, atlas.file_name())
