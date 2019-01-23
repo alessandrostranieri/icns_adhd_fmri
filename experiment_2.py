@@ -7,7 +7,6 @@ from sklearn.linear_model import SGDClassifier
 from sklearn.metrics import accuracy_score, recall_score, precision_score
 from sklearn.model_selection import train_test_split
 from sklearn.svm import LinearSVC
-from sklearn.preprocessing import StandardScaler
 
 from icns.common import Phenotypic, Institute, Atlas, Features, Target
 from icns.data_functions import create_training_data
@@ -38,8 +37,8 @@ train_data: dict = create_training_data([institute], atlas,
                                          Phenotypic.VERBAL_IQ,
                                          Phenotypic.PERFORMANCE_IQ,
                                          Phenotypic.FULL4_IQ])
-# Prepare data for connectivity matrix
 
+# Prepare data for connectivity matrix
 institute_data = train_data[institute]
 time_series_list = list()
 phenotypic_list = list()
@@ -58,18 +57,18 @@ for patient_id in institute_data.keys():
     adhd_labels.append(phenotypic[Phenotypic.DX])
     # phenotypic
     phenotypic_list.append(phenotypic.values)
+
 correlation_measure = ConnectivityMeasure(kind=connectivity_kind, vectorize=True)
-
 correlation_matrices = correlation_measure.fit_transform(time_series_list)
-# Possibly combine features
 
+# Possibly combine features
 patient_features = None
 if features_composition is Features.TIME_SERIES:
     patient_features = correlation_matrices
 elif features_composition is Features.TIME_SERIES_AND_PHENOTYPIC:
     patient_features = np.concatenate((correlation_matrices, phenotypic_list), axis=1)
-# Compose data with phenotypic data
 
+# Compose data with phenotypic data
 X_train, X_test, y_train, y_test = train_test_split(patient_features,
                                                     adhd_labels,
                                                     test_size=0.33,

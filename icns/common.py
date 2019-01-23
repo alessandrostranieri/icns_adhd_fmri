@@ -17,6 +17,12 @@ class Features(Enum):
     TIME_SERIES = 0
     TIME_SERIES_AND_PHENOTYPIC = 1
 
+    def __str__(self):
+        if self is Features.TIME_SERIES:
+            return 'ts'
+        elif self is Features.TIME_SERIES_AND_PHENOTYPIC:
+            return 'tsph'
+
 
 @unique
 class Target(Enum):
