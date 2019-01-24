@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def plot_institute_scores(institute_scores: dict, filename=None) -> None:
+def plot_institute_scores(institute_scores: dict, filename=None, do_show=True) -> None:
     # Parameters and style
     width = 1.0
     metric_colors = {0: 'black',  # Accuracy
@@ -43,4 +43,5 @@ def plot_institute_scores(institute_scores: dict, filename=None) -> None:
     if filename:
         plt.savefig(filename)
 
-    plt.show()
+    if do_show:
+        plt.show()

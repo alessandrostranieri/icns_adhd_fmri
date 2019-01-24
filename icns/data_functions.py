@@ -17,42 +17,38 @@ def read_time_series(time_series_path: str) -> pd.DataFrame:
     return time_series_data.iloc[:, 2:]
 
 
-def create_training_data(institutes: List[Institute], atlas: Atlas, phenotype_features: List[str], smoothed: bool = False) -> dict:
-    adhd_data = dict()
+def create_training_data(institute: Institute, atlas: Atlas, phenotype_features: List[str],
+                         smoothed: bool = False) -> dict:
+    institute_data = dict()
 
-    for institute in institutes:
-        institute_data = dict()
+    # Read the phenotype file into a data frame
+    phenotype_file_path: str = create_phenotype_path(str(institute), DataScope.TRAIN)
+    phenotype_df: pd.DataFrame = pd.read_csv(phenotype_file_path)
+    phenotype_df[Phenotypic.SCAN_DIR_ID] = phenotype_df[Phenotypic.SCAN_DIR_ID].apply(
+        lambda x: f'{x:07d}')
+    # Filter the data considering only selected features and target labels
+    all_labels: List[str] = [Phenotypic.SCAN_DIR_ID] + phenotype_features + [Phenotypic.DX]
+    selected_phenotype_df: pd.DataFrame = phenotype_df[all_labels].set_index(Phenotypic.SCAN_DIR_ID)
+    if phenotype_features:
+        selected_phenotype_df.fillna(method='pad', inplace=True)
 
-        # Read the phenotype file into a data frame
-        phenotype_file_path: str = create_phenotype_path(str(institute), DataScope.TRAIN)
-        phenotype_df: pd.DataFrame = pd.read_csv(phenotype_file_path)
-        phenotype_df[Phenotypic.SCAN_DIR_ID] = phenotype_df[Phenotypic.SCAN_DIR_ID].apply(
-            lambda x: f'{x:07d}')
-        # Filter the data considering only selected features and target labels
-        all_labels: List[str] = [Phenotypic.SCAN_DIR_ID] + phenotype_features + [Phenotypic.DX]
-        selected_phenotype_df: pd.DataFrame = phenotype_df[all_labels].set_index(Phenotypic.SCAN_DIR_ID)
-        if phenotype_features:
-            selected_phenotype_df.fillna(method='pad', inplace=True)
+    # Process and collect time series files
+    for patient_id, phenotypic in selected_phenotype_df.iterrows():
+        # Get patient time series
+        time_series_path = create_patient_time_series_path(str(institute), patient_id, atlas, DataScope.TRAIN, smoothed)
+        if path.exists(time_series_path):
+            time_series_data: pd.DataFrame = pd.read_table(time_series_path)
+            # Ignore the first two fields: File and	Sub-brick
+            time_series_data = time_series_data.iloc[:, 2:]
 
-        # Process and collect time series files
-        for patient_id, phenotypic in selected_phenotype_df.iterrows():
-            # Get patient time series
-            time_series_path = create_patient_time_series_path(str(institute), patient_id, atlas, DataScope.TRAIN, smoothed)
-            if path.exists(time_series_path):
-                time_series_data: pd.DataFrame = pd.read_table(time_series_path)
-                # Ignore the first two fields: File and	Sub-brick
-                time_series_data = time_series_data.iloc[:, 2:]
+            # Create patient dictionary
+            patient_data = dict()
+            patient_data['time_series'] = time_series_data
+            patient_data['phenotypic'] = phenotypic
 
-                # Create patient dictionary
-                patient_data = dict()
-                patient_data['time_series'] = time_series_data
-                patient_data['phenotypic'] = phenotypic
+            institute_data[patient_id] = patient_data
 
-                institute_data[patient_id] = patient_data
-
-        adhd_data[institute] = institute_data
-
-    return adhd_data
+    return institute_data
 
 
 def create_adhd_withheld_data(institutes: List[Institute], atlas: Atlas, phenotype_features: List[str],
@@ -77,7 +73,8 @@ def create_adhd_withheld_data(institutes: List[Institute], atlas: Atlas, phenoty
         # Process and collect time series files
         for patient_id, phenotypic in selected_phenotype_df.iterrows():
             # Get patient time series
-            time_series_path = create_patient_time_series_path(str(institute), patient_id, atlas, DataScope.TEST, smoothed)
+            time_series_path = create_patient_time_series_path(str(institute), patient_id, atlas, DataScope.TEST,
+                                                               smoothed)
             if path.exists(time_series_path):
                 time_series_data: pd.DataFrame = pd.read_table(time_series_path)
                 # Ignore the first two fields: File and	Sub-brick
