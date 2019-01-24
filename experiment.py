@@ -26,10 +26,11 @@ def create_classifier(classifier_name):
         return SGDClassifier(random_state=42)
 
 
-wrn.simplefilter('ignore')
+# Mute nipy warning
+# wrn.simplefilter('error')
 
 # Experiment parameters
-institutes = [Institute.PEKING, Institute.NYU, Institute.NEURO_IMAGE, Institute.OHSU]
+institutes = [Institute.PEKING, Institute.NYU, Institute.OHSU]
 atlas = Atlas.AAL
 features_composition = Features.TIME_SERIES
 phenotypic_features = list() if features_composition is Features.TIME_SERIES else [Phenotypic.SITE,
@@ -39,9 +40,9 @@ phenotypic_features = list() if features_composition is Features.TIME_SERIES els
                                                                                    Phenotypic.PERFORMANCE_IQ,
                                                                                    Phenotypic.FULL4_IQ]
 target_domain = Target.TD_ADHD
-connectivity_kind = 'tangent'
-pca_components_number = 3
-classifier_type = 'SVC'
+connectivity_kind = 'correlation'
+pca_components_number = 4
+classifier_type = 'RandomForest'
 
 # Experiment
 train_data: dict = create_training_data(institutes, atlas,
@@ -97,26 +98,29 @@ for institute in train_data.keys():
 
     # Predict
     y_train_predicted = classifier.predict(X_train)
+    y_majority = [np.argmax(np.bincount(y_train))] * len(y_test)
     y_test_predicted = classifier.predict(X_test)
 
     # Collect results
     train_accuracy = accuracy_score(y_train, y_train_predicted)
+    chance_accuracy = accuracy_score(y_test, y_majority)
     test_accuracy = accuracy_score(y_test, y_test_predicted)
     precision = precision_score(y_test, y_test_predicted)
     recall = recall_score(y_test, y_test_predicted)
 
     print(f'Institute: {str(institute)}')
     print(f'Train accuracy {train_accuracy}')
+    print(f'Chance accuracy {chance_accuracy}')
     print(f'Test accuracy {test_accuracy}')
     print(f'Precision {precision}')
     print(f'Recall {recall}')
 
     institute_scores[str(institute)] = {'accuracy': test_accuracy,
                                         'precision': precision,
-                                        'recall': recall}
+                                        'recall': recall,
+                                        'chance': chance_accuracy}
 
-
-# Plot results
+# Store results
 plot_institute_scores(institute_scores,
                       filename=f'score_{classifier_type}_{connectivity_kind}_{str(features_composition)}.png'
                       .replace(' ', '-'))

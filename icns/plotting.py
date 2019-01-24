@@ -7,17 +7,19 @@ def plot_institute_scores(institute_scores: dict, filename=None) -> None:
     width = 1.0
     metric_colors = {0: 'black',  # Accuracy
                      1: 'red',  # Precision
-                     2: 'blue'}  # Recall
+                     2: 'blue',
+                     3: 'green'}  # Recall
 
-    metric_labels = {0: 'Accuracy',  # Accuracy
-                     1: 'Precision',  # Precision
-                     2: 'Recall'}  # Recall
+    metric_labels = {0: 'Accuracy',
+                     1: 'Precision',
+                     2: 'Recall',
+                     3: 'Chance'}
 
     fig, ax = plt.subplots(figsize=(12, 8))
     plt.grid(True, axis='y', zorder=0)
 
     bar_positions = list()
-    legend_handles = [None] * 3
+    legend_handles = [None] * 4
     for pos, institute in enumerate(institute_scores.keys()):
         single_institute_results = institute_scores[institute]
         results_center_position = pos * 1.5 * width * len(legend_handles)
